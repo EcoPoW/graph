@@ -1,3 +1,4 @@
+import sys
 import base64
 from ecdsa import SigningKey, NIST384p
 
@@ -6,10 +7,11 @@ from ecdsa import SigningKey, NIST384p
 # open("pk.pem","w").write(str(sk.to_pem(), encoding="utf-8"))
 
 
-sk = SigningKey.from_pem(open("pk.pem").read())
-# print(sk)
+sk_filename = sys.argv[1]
+sk = SigningKey.from_pem(open(sk_filename).read())
+
 vk = sk.get_verifying_key()
 print(base64.b64encode(vk.to_string()))
-signature = sk.sign(b"message message message message message")
+signature = sk.sign(b"message")
 print(base64.b64encode(signature))
 assert vk.verify(signature, b"message")
