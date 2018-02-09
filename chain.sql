@@ -6,4 +6,4 @@ CREATE TABLE `chain` (
   `wallet_address` varchar(32) NOT NULL DEFAULT '',
   `data` mediumtext NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=168 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
