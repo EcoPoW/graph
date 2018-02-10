@@ -1,6 +1,12 @@
+import sys
 import hashlib
 import random
 import string
+import base64
+import time
+import json
+
+from ecdsa import SigningKey, VerifyingKey, NIST384p
 
 import tornado
 import torndb
@@ -22,24 +28,48 @@ certain_value = certain_value + 'f'*(64-len(certain_value))
 
 def main():
     print("leader")
-    # longest = longest_chain()
-    # print(longest)
-    # longest_hash = longest[-1]
+    sk_filename = sys.argv[1]
+    sk = SigningKey.from_pem(open(sk_filename).read())
 
-    # last = db.get("SELECT * FROM chain WHERE hash = '' AND prev_hash = '-' ORDER BY id ASC LIMIT 1")
-    # if not last:
-    #     print("No tx to pack")
-    #     return
+    vk = sk.get_verifying_key()
+    pk = str(base64.b64encode(vk.to_string()), encoding='utf8')
+    # print(pk)
 
-    # wallet_address = ''.join([random.choice(string.ascii_lowercase) for i in range(32)])
-    # for wallet_address in wallet_addresses:
-    for nonce in range(100000):
-        block_hash = hashlib.sha256(('last.data' + longest_hash + wallet_address + str(nonce)).encode('utf8')).hexdigest()
-        if block_hash < certain_value:
-            print(nonce, block_hash)
-            # db.execute("UPDATE chain SET hash = %s, prev_hash = %s, nonce = %s, wallet_address = %s WHERE id = %s", block_hash, longest_hash, nonce, wallet_address, last.id)
-            db.execute("INSERT INTO chain (hash, prev_hash, nonce, wallet_address, data) VALUES (%s, %s, %s, %s, '')", block_hash, longest_hash, nonce, wallet_address)
-            break
+    timestamp = str(int(time.time()-3600))
+    leaders = db.query("SELECT * FROM leaders WHERE pk = %s AND timestamp > %s", pk, timestamp)
+    # print(leaders)
+    if not leaders:
+        return
+    # leader = leaders[0]
+
+    transactions = db.query("SELECT * FROM transactions")
+    for transaction in transactions:
+        data = json.loads(transaction.data)
+        sender = data["transaction"]["sender"]
+        receiver = data["transaction"]["receiver"]
+        from_node = data["transaction"]["from"]
+        to_node = data["transaction"]["to"]
+        amount = data["transaction"]["amount"]
+        signature = data["signature"]
+
+        # sk = SigningKey.generate(curve=NIST384p)
+        # vk = sk.get_verifying_key()
+        # vk_string = vk.to_string()
+        # print(sender)
+        vk2 = VerifyingKey.from_string(base64.b64decode(sender), curve=NIST384p)
+
+        # print(json.dumps(data["transaction"]).encode('utf-8'))
+        assert vk2.verify(base64.b64decode(signature), json.dumps(data["transaction"]).encode('utf-8'))
+
+        # signature = sk.sign(json.dumps(transaction).encode('utf-8'))
+        # data = {"transaction": transaction, "signature": str(base64.b64encode(signature), encoding="utf-8")}
+
+        for nonce in range(100000000):
+            block_hash = hashlib.sha256((transaction.data + from_node + to_node + pk + str(nonce)).encode('utf8')).hexdigest()
+            if block_hash < certain_value:
+                print(nonce, block_hash)
+                db.execute("INSERT INTO graph (hash, from_node, to_node, nonce, data) VALUES (%s, %s, %s, %s, %s)", block_hash, from_node, to_node, nonce, transaction.data)
+                break
 
 if __name__ == '__main__':
     main()
