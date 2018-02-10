@@ -26,7 +26,7 @@ certain_value = certain_value + 'f'*(64-len(certain_value))
 # 这里选择PoL
 
 def longest_chain(root_hash = '0'*64):
-    roots = db.query("SELECT * FROM leaders WHERE hash = %s ORDER BY nonce", root_hash)
+    roots = db.query("SELECT * FROM leaders WHERE prev_hash = %s ORDER BY nonce", root_hash)
 
     chains = []
     prev_hashs = []
@@ -72,7 +72,7 @@ def main():
     print(pk)
 
     longest = longest_chain()
-    prev_hash = longest[-1]
+    prev_hash = longest[-1] if longest else "0"*64
 
     nonce = 0
     while True:
