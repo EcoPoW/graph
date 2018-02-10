@@ -4,7 +4,7 @@ from ecdsa import SigningKey, NIST384p
 
 # generate key
 # sk = SigningKey.generate(curve=NIST384p)
-# open("pk.pem","w").write(str(sk.to_pem(), encoding="utf-8"))
+# open("pk.pem", "w").write(str(sk.to_pem(), encoding="utf-8"))
 
 
 sk_filename = sys.argv[1]
