@@ -27,7 +27,6 @@ certain_value = certain_value + 'f'*(64-len(certain_value))
 # 这里选择PoL
 
 def main():
-    print("leader")
     sk_filename = sys.argv[1]
     sk = SigningKey.from_pem(open(sk_filename).read())
 
@@ -52,13 +51,7 @@ def main():
         amount = data["transaction"]["amount"]
         signature = data["signature"]
 
-        # sk = SigningKey.generate(curve=NIST384p)
-        # vk = sk.get_verifying_key()
-        # vk_string = vk.to_string()
-        # print(sender)
         vk2 = VerifyingKey.from_string(base64.b64decode(sender), curve=NIST384p)
-
-        # print(json.dumps(data["transaction"]).encode('utf-8'))
         assert vk2.verify(base64.b64decode(signature), json.dumps(data["transaction"]).encode('utf-8'))
 
         # signature = sk.sign(json.dumps(transaction).encode('utf-8'))
@@ -68,8 +61,14 @@ def main():
             block_hash = hashlib.sha256((transaction.data + from_node + to_node + pk + str(nonce)).encode('utf8')).hexdigest()
             if block_hash < certain_value:
                 print(nonce, block_hash)
-                db.execute("INSERT INTO graph (hash, from_node, to_node, nonce, data) VALUES (%s, %s, %s, %s, %s)", block_hash, from_node, to_node, nonce, transaction.data)
+                try:
+                    db.execute("INSERT INTO graph (hash, from_node, to_node, nonce, data) VALUES (%s, %s, %s, %s, %s)", block_hash, from_node, to_node, nonce, transaction.data)
+                except:
+                    pass
                 break
 
 if __name__ == '__main__':
-    main()
+    print("leader", sys.argv[1])
+    while True:
+        main()
+        time.sleep(5)

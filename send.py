@@ -11,7 +11,7 @@ db = torndb.Connection("127.0.0.1", "test", user="root", password="root")
 
 
 def longest_chain(root_hash = '0'*64):
-    roots = db.query("SELECT * FROM graph WHERE hash = %s ORDER BY nonce", root_hash)
+    roots = db.query("SELECT * FROM graph WHERE from_node = %s OR to_node = %s ORDER BY nonce", root_hash, root_hash)
 
     chains = []
     prev_hashs = []
@@ -60,12 +60,14 @@ def main():
     sender = base64.b64encode(vk.to_string())
     sender_nodes = longest_chain(sender)
     receiver_nodes = longest_chain(receiver)
+    from_node = sender_nodes[-1] if sender_nodes else str(sender, encoding="utf-8")
+    to_node = receiver_nodes[-1] if receiver_nodes else receiver
 
     transaction = {
         "sender": str(sender, encoding="utf-8"),
         "receiver": receiver,
-        "from": sender_nodes[-1],
-        "to": receiver_nodes[-1],
+        "from": from_node,
+        "to": to_node,
         "timestamp": time.time(),
         "amount": amount
         }
@@ -73,12 +75,15 @@ def main():
 
     signature = sk.sign(json.dumps(transaction).encode('utf-8'))
     data = {
-        "transaction": transaction, 
+        "transaction": transaction,
         "signature": str(base64.b64encode(signature), encoding="utf-8")
         }
-    assert vk.verify(signature, json.dumps(transaction).encode('utf-8'))
 
-    db.execute("INSERT INTO transactions (data, from_node, to_node) VALUES (%s, %s, %s)", json.dumps(data), sender_nodes[-1], receiver_nodes[-1])
+    try:
+        assert vk.verify(signature, json.dumps(transaction).encode('utf-8'))
+        db.execute("INSERT INTO transactions (data, from_node, to_node) VALUES (%s, %s, %s)", json.dumps(data), from_node, to_node)
+    except:
+        pass
 
 
 if __name__ == '__main__':
