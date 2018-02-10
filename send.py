@@ -22,11 +22,20 @@ amount = float(sys.argv[3])
 
 vk = sk.get_verifying_key()
 sender = base64.b64encode(vk.to_string())
-transaction = {"sender": str(sender, encoding="utf-8"), "receiver": receiver, "from": "", "to": "", "amount": amount}
+transaction = {
+	"sender": str(sender, encoding="utf-8"),
+	"receiver": receiver,
+	"from": "",
+	"to": "",
+	"amount": amount
+	}
 # print(json.dumps(transaction))
 
 signature = sk.sign(json.dumps(transaction).encode('utf-8'))
-data = {"transaction": transaction, "signature": str(base64.b64encode(signature), encoding="utf-8")}
+data = {
+	"transaction": transaction, 
+	"signature": str(base64.b64encode(signature), encoding="utf-8")
+	}
 assert vk.verify(signature, json.dumps(transaction).encode('utf-8'))
 
 db.execute("INSERT INTO transactions (data, from_node, to_node) VALUES (%s, %s, %s)", json.dumps(data), str(sender, encoding="utf-8"), receiver)

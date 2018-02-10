@@ -1,9 +1,7 @@
-CREATE TABLE `graph` (
+CREATE TABLE `transactions` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `hash` varchar(128) NOT NULL DEFAULT '',
+  `data` text NOT NULL,
   `from_node` varchar(128) NOT NULL DEFAULT '',
   `to_node` varchar(128) NOT NULL DEFAULT '',
-  `nonce` int(10) unsigned NOT NULL,
-  `data` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

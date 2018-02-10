@@ -1,9 +1,9 @@
-CREATE TABLE `graph` (
+CREATE TABLE `leaders` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `hash` varchar(128) NOT NULL DEFAULT '',
-  `from_node` varchar(128) NOT NULL DEFAULT '',
-  `to_node` varchar(128) NOT NULL DEFAULT '',
+  `prev_hash` varchar(128) NOT NULL DEFAULT '',
+  `pk` varchar(200) NOT NULL DEFAULT '',
   `nonce` int(10) unsigned NOT NULL,
-  `data` text NOT NULL,
+  `timestamp` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
