@@ -11,7 +11,7 @@ sk_filename = sys.argv[1]
 sk = SigningKey.from_pem(open(sk_filename).read())
 
 vk = sk.get_verifying_key()
-print(base64.b64encode(vk.to_string()))
-signature = sk.sign(b"message")
-print(base64.b64encode(signature))
-assert vk.verify(signature, b"message")
+print(str(base64.b64encode(vk.to_string()), encoding='utf-8'))
+# signature = sk.sign(b"message")
+# print(base64.b64encode(signature))
+# assert vk.verify(signature, b"message")
