@@ -101,7 +101,7 @@ def main():
         from_node = sender_nodes[-1] if sender_nodes else sender
         to_node = receiver_nodes[-1] if receiver_nodes else receiver
 
-        print(processed_txids)
+        # print(processed_txids)
         if transaction.txid in processed_txids:
             continue
 
