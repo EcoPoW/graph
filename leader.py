@@ -125,11 +125,11 @@ def main():
             block_hash = hashlib.sha256((json.dumps(data) + pk + str(nonce)).encode('utf8')).hexdigest()
             if block_hash < certain_value:
                 print(nonce, block_hash)
-                # try:
+                try:
                     # query if any node taken from_node or to_node
-                db.execute("INSERT INTO graph (hash, from_node, to_node, sender, receiver, nonce, data) VALUES (%s, %s, %s, %s, %s, %s, %s)", block_hash, from_node, to_node, sender, receiver, nonce, transaction.data)
-                # except:
-                #     pass
+                    db.execute("INSERT INTO graph (hash, from_node, to_node, sender, receiver, nonce, data) VALUES (%s, %s, %s, %s, %s, %s, %s)", block_hash, from_node, to_node, sender, receiver, nonce, transaction.data)
+                except:
+                    pass
                 break
 
 if __name__ == '__main__':

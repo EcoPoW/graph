@@ -9,8 +9,8 @@ CREATE TABLE `graph` (
   `data` text NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `hash` (`hash`),
-  UNIQUE KEY `from_node` (`from_node`,`to_node`,`nonce`),
-  KEY `from_node_2` (`from_node`),
+  UNIQUE KEY `from_to_node_nonce` (`from_node`,`to_node`,`nonce`),
+  KEY `from_node` (`from_node`),
   KEY `to_node` (`to_node`),
   KEY `sender` (`sender`),
   KEY `receiver` (`receiver`)
