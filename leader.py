@@ -27,7 +27,7 @@ certain_value = certain_value + 'f'*(64-len(certain_value))
 # 这时候，N个挖矿者合作添加交易
 # 这里选择PoL
 
-def longest_chain(root_hash):
+def lastest_block(root_hash):
     roots = db.query("SELECT * FROM graph WHERE from_node = %s OR to_node = %s ORDER BY nonce", root_hash, root_hash)
 
     chains = []
@@ -90,8 +90,8 @@ def main():
         amount = data["transaction"]["amount"]
         signature = data["signature"]
 
-        sender_nodes = longest_chain(sender)
-        receiver_nodes = longest_chain(receiver)
+        sender_nodes = lastest_block(sender)
+        receiver_nodes = lastest_block(receiver)
         for node in sender_nodes+receiver_nodes:
             tx = db.get("SELECT * FROM graph WHERE hash = %s", node)
             tx_data = json.loads(tx.data)

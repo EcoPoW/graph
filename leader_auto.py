@@ -6,51 +6,17 @@ import base64
 import time
 import json
 from ecdsa import SigningKey, VerifyingKey, NIST384p
-# import election_new
+
 import tornado
 import torndb
 
+from leader import lastest_block
+
 db = torndb.Connection("127.0.0.1", "test", user="root", password="root")
 
-certain_value = "000"
+certain_value = "0"
 certain_value = certain_value + 'f'*(64-len(certain_value))
 
-
-def longest_chain(root_hash = '0'*64):
-    roots = db.query("SELECT * FROM graph WHERE from_node = %s OR to_node = %s ORDER BY nonce", root_hash, root_hash)
-    chains = []
-    prev_hashs = []
-    for root in roots:
-        chains.append([root.hash])
-        prev_hashs.append(root.hash)
-
-    while True:
-        if prev_hashs:
-            prev_hash = prev_hashs.pop(0)
-        else:
-            break
-
-        leaves = db.query("SELECT * FROM graph WHERE (from_node = %s OR to_node = %s) AND (sender = %s OR receiver = %s) ORDER BY nonce", prev_hash, prev_hash, root_hash, root_hash)
-        if len(leaves) > 0:
-            for leaf in leaves:
-                # print(leaf)
-                for c in chains:
-                    if c[-1] == prev_hash:
-                        chain = c.copy()
-                        chain.append(leaf.hash)
-                        chains.append(chain)
-                        break
-                if leaf.hash not in prev_hashs and leaf.hash:
-                    prev_hashs.append(leaf.hash)
-
-    longest = []
-    for i in chains:
-        # print(i)
-        if not longest:
-            longest = i
-        if len(longest) < len(i):
-            longest = i
-    return longest
 
 
 def election(sk_filename):
@@ -61,7 +27,7 @@ def election(sk_filename):
     pk = str(base64.b64encode(vk.to_string()), encoding='utf8')
     print(pk)
 
-    longest = longest_chain()
+    longest = lastest_block()
     prev_hash = longest[-1] if longest else "0"*64
 
     nonce = 0
@@ -99,8 +65,8 @@ def main():
             amount = data["transaction"]["amount"]
             signature = data["signature"]
 
-            sender_nodes = longest_chain(sender)
-            receiver_nodes = longest_chain(receiver)
+            sender_nodes = lastest_block(sender)
+            receiver_nodes = lastest_block(receiver)
             for node in sender_nodes+receiver_nodes:
                 tx = db.get("SELECT * FROM graph WHERE hash = %s", node)
                 tx_data = json.loads(tx.data)
