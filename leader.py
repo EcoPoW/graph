@@ -14,18 +14,14 @@ import torndb
 
 db = torndb.Connection("127.0.0.1", "test", user="root", password="root")
 
-certain_value = "00000"
+certain_value = "0"
 certain_value = certain_value + 'f'*(64-len(certain_value))
 
 
-# 选举，由无限多个挖矿者众竞争出N个
-# 由于网络延迟，可能有更多的挖矿者声称因为延迟，所以在deadline之后发来消息，但是署名timestamp是deadline之前，那么就会有分歧
-# 比较比特币网络，挖出新区块并不意味着获得奖赏，还要依靠最长链法则才能完成竞争
-# 所以选举依然是PoW
-
 # 添加交易，一旦挖矿者被选举成功，它就有在一定时间内向系统写入交易的权限
-# 这时候，N个挖矿者合作添加交易
+# 这时候，m个挖矿者合作添加交易
 # 这里选择PoL
+# 优先选择最长链，如果两个一样长，选择nonce小的
 
 def lastest_block(root_hash):
     roots = db.query("SELECT * FROM graph WHERE from_node = %s OR to_node = %s ORDER BY nonce", root_hash, root_hash)
@@ -43,10 +39,23 @@ def lastest_block(root_hash):
         else:
             break
 
-        leaves = db.query("SELECT * FROM graph WHERE (from_node = %s OR to_node = %s) AND (sender = %s OR receiver = %s) ORDER BY nonce", prev_hash, prev_hash, root_hash, root_hash)
+        leaves = db.query("SELECT * FROM graph WHERE from_node = %s AND sender = %s ORDER BY nonce", prev_hash, root_hash)
         if len(leaves) > 0:
             for leaf in leaves:
-                # print(leaf)
+                # print(leaf.id)
+                for c in chains:
+                    if c[-1] == prev_hash:
+                        chain = c.copy()
+                        chain.append(leaf.hash)
+                        chains.append(chain)
+                        break
+                if leaf.hash not in prev_hashs and leaf.hash:
+                    prev_hashs.append(leaf.hash)
+
+        leaves = db.query("SELECT * FROM graph WHERE to_node = %s AND receiver = %s ORDER BY nonce", prev_hash, root_hash)
+        if len(leaves) > 0:
+            for leaf in leaves:
+                # print(leaf.id)
                 for c in chains:
                     if c[-1] == prev_hash:
                         chain = c.copy()
@@ -58,11 +67,11 @@ def lastest_block(root_hash):
 
     longest = []
     for i in chains:
-        # print(i)
         if not longest:
             longest = i
         if len(longest) < len(i):
             longest = i
+    # print(longest)
     return longest
 
 def main():

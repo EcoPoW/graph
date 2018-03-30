@@ -13,17 +13,13 @@ import torndb
 
 db = torndb.Connection("127.0.0.1", "test", user="root", password="root")
 
-certain_value = "00000"
+certain_value = "00"
 certain_value = certain_value + 'f'*(64-len(certain_value))
 
-# 选举，由无限多个挖矿者众竞争出N个
+# 选举，由M个(无限多)挖矿者众竞争出m个
 # 由于网络延迟，可能有更多的挖矿者声称因为延迟，所以在deadline之后发来消息，但是署名timestamp是deadline之前，那么就会有分歧
 # 比较比特币网络，挖出新区块并不意味着获得奖赏，还要依靠最长链法则才能完成竞争
 # 所以选举依然是PoW
-
-# 添加交易，一旦挖矿者被选举成功，它就有在一定时间内向系统写入交易的权限
-# 这时候，N个挖矿者合作添加交易
-# 这里选择PoL
 
 def longest_chain(root_hash = '0'*64):
     roots = db.query("SELECT * FROM leaders WHERE prev_hash = %s ORDER BY nonce", root_hash)
