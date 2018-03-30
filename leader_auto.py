@@ -11,34 +11,13 @@ import tornado
 import torndb
 
 from leader import lastest_block
+from election import election
 
 db = torndb.Connection("127.0.0.1", "test", user="root", password="root")
 
 certain_value = "0"
 certain_value = certain_value + 'f'*(64-len(certain_value))
 
-
-
-def election(sk_filename):
-    print("election")
-    sk = SigningKey.from_pem(open(sk_filename).read())
-
-    vk = sk.get_verifying_key()
-    pk = str(base64.b64encode(vk.to_string()), encoding='utf8')
-    print(pk)
-
-    longest = lastest_block()
-    prev_hash = longest[-1] if longest else "0"*64
-
-    nonce = 0
-    while True:
-        timestamp = str(int(time.time()))
-        block_hash = hashlib.sha256((prev_hash + pk + timestamp + str(nonce)).encode('utf8')).hexdigest()
-        if block_hash < certain_value:
-            print("election", nonce, block_hash)
-            db.execute("INSERT INTO leaders (hash, prev_hash, nonce, pk, timestamp) VALUES (%s, %s, %s, %s, %s)", block_hash, prev_hash, nonce, pk, timestamp)
-            break
-        nonce += 1
 
 def main():
     sk_filename = sys.argv[1]

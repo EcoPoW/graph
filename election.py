@@ -62,9 +62,8 @@ def longest_chain(root_hash = '0'*64):
     return longest
 
 
-def main():
+def election(sk_filename):
     print("election")
-    sk_filename = sys.argv[1]
     sk = SigningKey.from_pem(open(sk_filename).read())
 
     vk = sk.get_verifying_key()
@@ -79,10 +78,12 @@ def main():
         timestamp = str(int(time.time()))
         block_hash = hashlib.sha256((prev_hash + pk + timestamp + str(nonce)).encode('utf8')).hexdigest()
         if block_hash < certain_value:
-            print(block_hash, nonce)
+            print("election", nonce, block_hash)
             db.execute("INSERT INTO leaders (hash, prev_hash, nonce, pk, timestamp) VALUES (%s, %s, %s, %s, %s)", block_hash, prev_hash, nonce, pk, timestamp)
             break
         nonce += 1
 
+
 if __name__ == '__main__':
-    main()
+    sk_filename = sys.argv[1]
+    election(sk_filename)
