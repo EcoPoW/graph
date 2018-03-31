@@ -18,8 +18,11 @@ db = torndb.Connection("127.0.0.1", "test", user="root", password="root")
 certain_value = "0"
 certain_value = certain_value + 'f'*(64-len(certain_value))
 
+processed_txids = set()
 
 def main(sk_filename):
+    global processed_txids
+
     sk = SigningKey.from_pem(open(sk_filename).read())
 
     vk = sk.get_verifying_key()
@@ -35,7 +38,9 @@ def main(sk_filename):
 
         transactions = db.query("SELECT * FROM transactions")
         for transaction in transactions:
-            processed_txids = set()
+            # print(processed_txids)
+            if transaction.txid in processed_txids:
+                continue
 
             data = json.loads(transaction.data)
             sender = data["transaction"]["sender"]
@@ -54,9 +59,6 @@ def main(sk_filename):
             from_block = sender_nodes[-1] if sender_nodes else sender
             to_block = receiver_nodes[-1] if receiver_nodes else receiver
 
-            # print(processed_txids)
-            if transaction.txid in processed_txids:
-                continue
 
             # query from_block and to_block
             # get balance and calcuate
@@ -77,7 +79,6 @@ def main(sk_filename):
             for nonce in range(100000000):
                 block_hash = hashlib.sha256((json.dumps(data) + pk + str(nonce)).encode('utf8')).hexdigest()
                 if block_hash < certain_value:
-                    # print("data", data)
                     print("tx", nonce, block_hash)
                     try:
                         # query if any node taken from_block or to_block
@@ -91,4 +92,4 @@ if __name__ == '__main__':
     sk_filename = sys.argv[1]
     while True:
         main(sk_filename)
-        time.sleep(1)
+        time.sleep(random.randint(1, 4))

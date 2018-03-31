@@ -11,7 +11,8 @@ def signal_handler(signal, frame):
     print('Pressed Ctrl+C!')
     sys.exit(0)
 
-for i in range(1,5):
+total = sys.argv[1]
+for i in range(1,int(total)+1):
     print(i)
     p = subprocess.Popen(['python', 'leader_auto.py', 'p%s.pem'%i], shell=False)
     leaders.add(p)
