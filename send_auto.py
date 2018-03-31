@@ -18,11 +18,13 @@ def main():
     # sk_filename = sys.argv[1]
     sk_filename = "p" + str(i) + ".pem"
     sk = SigningKey.from_pem(open(sk_filename).read())
-    i = random.randint(1, USER_NO)
 
-    receiver_filename = "p" + str(i) + ".pem"
+    j = i
+    while j == i:
+        j = random.randint(1, USER_NO)
+    receiver_filename = "p" + str(j) + ".pem"
     rec = SigningKey.from_pem(open(receiver_filename).read())
-    amount = random.randint(1,20)
+    amount = random.randint(1, 20)
 
     vk = sk.get_verifying_key()
     sender = base64.b64encode(vk.to_string())

@@ -38,9 +38,9 @@ def main(sk_filename):
 
         transactions = db.query("SELECT * FROM transactions")
         for transaction in transactions:
-            # print(processed_txids)
             if transaction.txid in processed_txids:
                 continue
+            processed_txids.add(transaction.txid)
 
             data = json.loads(transaction.data)
             sender = data["transaction"]["sender"]
@@ -48,16 +48,20 @@ def main(sk_filename):
             amount = data["transaction"]["amount"]
             signature = data["signature"]
 
-            sender_nodes = lastest_block(sender)
-            receiver_nodes = lastest_block(receiver)
-            for node in sender_nodes+receiver_nodes:
-                tx = db.get("SELECT * FROM graph WHERE hash = %s", node)
+            chain_txids = set()
+            sender_blocks = lastest_block(sender)
+            receiver_blocks = lastest_block(receiver)
+            for blockhash in sender_blocks+receiver_blocks:
+                tx = db.get("SELECT * FROM graph WHERE hash = %s", blockhash)
                 tx_data = json.loads(tx.data)
                 txid = tx_data["transaction"]["txid"]
-                processed_txids.add(txid)
+                chain_txids.add(txid)
 
-            from_block = sender_nodes[-1] if sender_nodes else sender
-            to_block = receiver_nodes[-1] if receiver_nodes else receiver
+            if transaction.txid in chain_txids:
+                continue
+
+            from_block = sender_blocks[-1] if sender_blocks else sender
+            to_block = receiver_blocks[-1] if receiver_blocks else receiver
 
 
             # query from_block and to_block
