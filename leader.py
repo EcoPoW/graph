@@ -24,7 +24,7 @@ certain_value = certain_value + 'f'*(64-len(certain_value))
 # 优先选择最长链，如果两个一样长，选择nonce小的
 
 def lastest_block(root_hash):
-    roots = db.query("SELECT * FROM graph WHERE from_node = %s OR to_node = %s ORDER BY nonce", root_hash, root_hash)
+    roots = db.query("SELECT * FROM graph WHERE from_block = %s OR to_block = %s ORDER BY nonce", root_hash, root_hash)
 
     chains = []
     prev_hashs = []
@@ -39,7 +39,7 @@ def lastest_block(root_hash):
         else:
             break
 
-        leaves = db.query("SELECT * FROM graph WHERE from_node = %s AND sender = %s ORDER BY nonce", prev_hash, root_hash)
+        leaves = db.query("SELECT * FROM graph WHERE from_block = %s AND sender = %s ORDER BY nonce", prev_hash, root_hash)
         if len(leaves) > 0:
             for leaf in leaves:
                 # print(leaf.id)
@@ -52,7 +52,7 @@ def lastest_block(root_hash):
                 if leaf.hash not in prev_hashs and leaf.hash:
                     prev_hashs.append(leaf.hash)
 
-        leaves = db.query("SELECT * FROM graph WHERE to_node = %s AND receiver = %s ORDER BY nonce", prev_hash, root_hash)
+        leaves = db.query("SELECT * FROM graph WHERE to_block = %s AND receiver = %s ORDER BY nonce", prev_hash, root_hash)
         if len(leaves) > 0:
             for leaf in leaves:
                 # print(leaf.id)
@@ -74,8 +74,7 @@ def lastest_block(root_hash):
     # print(longest)
     return longest
 
-def main():
-    sk_filename = sys.argv[1]
+def main(sk_filename):
     sk = SigningKey.from_pem(open(sk_filename).read())
 
     vk = sk.get_verifying_key()
@@ -107,19 +106,19 @@ def main():
             txid = tx_data["transaction"]["txid"]
             processed_txids.add(txid)
 
-        from_node = sender_nodes[-1] if sender_nodes else sender
-        to_node = receiver_nodes[-1] if receiver_nodes else receiver
+        from_block = sender_nodes[-1] if sender_nodes else sender
+        to_block = receiver_nodes[-1] if receiver_nodes else receiver
 
         # print(processed_txids)
         if transaction.txid in processed_txids:
             continue
 
-        # query from_node and to_node
+        # query from_block and to_block
         # get balance and calcuate
-        # update transaction's from_node and to_node
+        # update transaction's from_block and to_block
 
-        data["from_node"] = from_node
-        data["to_node"] = to_node
+        data["from_block"] = from_block
+        data["to_block"] = to_block
         data["sender_balance"] = ""
         data["receiver_balance"] = ""
         data["leader_publickey"] = pk
@@ -135,14 +134,15 @@ def main():
             if block_hash < certain_value:
                 print(nonce, block_hash)
                 try:
-                    # query if any node taken from_node or to_node
-                    db.execute("INSERT INTO graph (hash, from_node, to_node, sender, receiver, nonce, data) VALUES (%s, %s, %s, %s, %s, %s, %s)", block_hash, from_node, to_node, sender, receiver, nonce, transaction.data)
+                    # query if any node taken from_block or to_block
+                    db.execute("INSERT INTO graph (hash, from_block, to_block, sender, receiver, nonce, data) VALUES (%s, %s, %s, %s, %s, %s, %s)", block_hash, from_block, to_block, sender, receiver, nonce, transaction.data)
                 except:
                     pass
                 break
 
 if __name__ == '__main__':
     print("leader", sys.argv[1])
+    sk_filename = sys.argv[1]
     while True:
-        main()
+        main(sk_filename)
         time.sleep(5)
