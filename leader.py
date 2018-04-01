@@ -17,6 +17,7 @@ db = torndb.Connection("127.0.0.1", "test", user="root", password="root")
 certain_value = "0"
 certain_value = certain_value + 'f'*(64-len(certain_value))
 
+processed_txids = set()
 
 # 添加交易，一旦挖矿者被选举成功，它就有在一定时间内向系统写入交易的权限
 # 这时候，m个挖矿者合作添加交易
@@ -75,6 +76,8 @@ def lastest_block(root_hash):
     return longest
 
 def main(sk_filename):
+    global processed_txids
+
     sk = SigningKey.from_pem(open(sk_filename).read())
 
     vk = sk.get_verifying_key()
@@ -90,7 +93,9 @@ def main(sk_filename):
 
     transactions = db.query("SELECT * FROM transactions")
     for transaction in transactions:
-        processed_txids = set()
+        if transaction.txid in processed_txids:
+            continue
+        processed_txids.add(transaction.txid)
 
         data = json.loads(transaction.data)
         sender = data["transaction"]["sender"]
@@ -98,20 +103,21 @@ def main(sk_filename):
         amount = data["transaction"]["amount"]
         signature = data["signature"]
 
-        sender_nodes = lastest_block(sender)
-        receiver_nodes = lastest_block(receiver)
-        for node in sender_nodes+receiver_nodes:
-            tx = db.get("SELECT * FROM graph WHERE hash = %s", node)
+        chain_txids = set()
+        sender_blocks = lastest_block(sender)
+        receiver_blocks = lastest_block(receiver)
+        for blockhash in sender_blocks+receiver_blocks:
+            tx = db.get("SELECT * FROM graph WHERE hash = %s", blockhash)
             tx_data = json.loads(tx.data)
             txid = tx_data["transaction"]["txid"]
-            processed_txids.add(txid)
+            chain_txids.add(txid)
 
-        from_block = sender_nodes[-1] if sender_nodes else sender
-        to_block = receiver_nodes[-1] if receiver_nodes else receiver
-
-        # print(processed_txids)
-        if transaction.txid in processed_txids:
+        if transaction.txid in chain_txids:
             continue
+
+        from_block = sender_blocks[-1] if sender_blocks else sender
+        to_block = receiver_blocks[-1] if receiver_blocks else receiver
+
 
         # query from_block and to_block
         # get balance and calcuate
@@ -144,5 +150,5 @@ if __name__ == '__main__':
     print("leader", sys.argv[1])
     sk_filename = sys.argv[1]
     while True:
-        main(sk_filename)
         time.sleep(5)
+        main(sk_filename)

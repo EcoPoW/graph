@@ -95,5 +95,5 @@ if __name__ == '__main__':
     # print("leader", sys.argv[1])
     sk_filename = sys.argv[1]
     while True:
+        time.sleep(random.randint(1, 8))
         main(sk_filename)
-        time.sleep(random.randint(1, 4))

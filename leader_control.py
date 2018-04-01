@@ -7,7 +7,8 @@ leaders = set()
 def signal_handler(signal, frame):
     global leaders
     for l in leaders:
-        l.terminate()
+        # l.terminate()
+        l.kill()
     print('Pressed Ctrl+C!')
     sys.exit(0)
 
