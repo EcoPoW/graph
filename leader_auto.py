@@ -37,6 +37,7 @@ def main(sk_filename):
         # leader = leaders[0]
 
         transactions = db.query("SELECT * FROM transactions")
+        random.shuffle(transactions)
         for transaction in transactions:
             if transaction.txid in processed_txids:
                 continue
@@ -56,6 +57,7 @@ def main(sk_filename):
                 tx_data = json.loads(tx.data)
                 txid = tx_data["transaction"]["txid"]
                 chain_txids.add(txid)
+                processed_txids.add(txid)
 
             if transaction.txid in chain_txids:
                 continue
