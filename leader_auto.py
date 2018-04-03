@@ -52,7 +52,7 @@ def main(sk_filename):
             chain_txids = set()
             sender_blocks = lastest_block(sender)
             receiver_blocks = lastest_block(receiver)
-            for blockhash in sender_blocks+receiver_blocks:
+            for blockhash in set(sender_blocks+receiver_blocks):
                 tx = db.get("SELECT * FROM graph WHERE hash = %s", blockhash)
                 tx_data = json.loads(tx.data)
                 txid = tx_data["transaction"]["txid"]
@@ -89,6 +89,7 @@ def main(sk_filename):
                     try:
                         # query if any node taken from_block or to_block
                         db.execute("INSERT INTO graph (hash, from_block, to_block, sender, receiver, nonce, data) VALUES (%s, %s, %s, %s, %s, %s, %s)", block_hash, from_block, to_block, sender, receiver, nonce, transaction.data)
+                        # db.execute("INSERT INTO graph (hash, from_block, to_block, sender, receiver, nonce, data, transaction_id, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", block_hash, from_block, to_block, sender, receiver, nonce, transaction.data, transaction.id, int(time.time()))
                     except:
                         pass
                     break
@@ -97,5 +98,5 @@ if __name__ == '__main__':
     # print("leader", sys.argv[1])
     sk_filename = sys.argv[1]
     while True:
-        time.sleep(random.randint(1, 8))
+        # time.sleep(random.randint(1, 8))
         main(sk_filename)
