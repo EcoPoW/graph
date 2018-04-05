@@ -41,7 +41,6 @@ def main(sk_filename):
         for transaction in transactions:
             if transaction.txid in processed_txids:
                 continue
-            processed_txids.add(transaction.txid)
 
             data = json.loads(transaction.data)
             sender = data["transaction"]["sender"]
@@ -57,6 +56,7 @@ def main(sk_filename):
                 tx_data = json.loads(tx.data)
                 txid = tx_data["transaction"]["txid"]
                 chain_txids.add(txid)
+                processed_txids.add(txid)
 
             if transaction.txid in chain_txids:
                 continue
@@ -89,7 +89,7 @@ def main(sk_filename):
                         # query if any node taken from_block or to_block
                         db.execute("INSERT INTO graph (hash, from_block, to_block, sender, receiver, nonce, data) VALUES (%s, %s, %s, %s, %s, %s, %s)", block_hash, from_block, to_block, sender, receiver, nonce, transaction.data)
                         # db.execute("INSERT INTO graph (hash, from_block, to_block, sender, receiver, nonce, data, transaction_id, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", block_hash, from_block, to_block, sender, receiver, nonce, transaction.data, transaction.id, int(time.time()))
-                        processed_txids.add(txid)
+                        processed_txids.add(transaction.txid)
                     except:
                         pass
                     break

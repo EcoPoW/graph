@@ -8,10 +8,8 @@ CREATE TABLE `graph` (
   `receiver` varchar(128) NOT NULL,
   `data` text NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `hash` (`hash`),
-  UNIQUE KEY `from_to_block_nonce` (`from_block`,`to_block`,`nonce`),
-  KEY `from_block` (`from_block`),
-  KEY `to_block` (`to_block`),
-  KEY `sender` (`sender`),
-  KEY `receiver` (`receiver`)
+  UNIQUE INDEX `hash` (`hash`),
+  UNIQUE INDEX `block_nonce` (`from_block`, `to_block`, `nonce`),
+  INDEX `from_block` (`from_block`, `sender`, `nonce`),
+  INDEX `to_block` (`to_block`, `receiver`,`nonce`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
