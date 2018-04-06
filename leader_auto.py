@@ -19,9 +19,10 @@ certain_value = "0"
 certain_value = certain_value + 'f'*(64-len(certain_value))
 
 processed_txids = set()
+transaction_id = 0
 
 def main(sk_filename):
-    global processed_txids
+    global processed_txids, transaction_id
 
     sk = SigningKey.from_pem(open(sk_filename).read())
 
@@ -36,9 +37,11 @@ def main(sk_filename):
     else:
         # leader = leaders[0]
 
-        transactions = db.query("SELECT * FROM transactions")
+        transactions = db.query("SELECT * FROM transactions WHERE id > %s ORDER BY id ASC LIMIT 100", transaction_id)
         random.shuffle(transactions)
         for transaction in transactions:
+            if transaction.id > transaction_id:
+                transaction_id = transaction.id
             if transaction.txid in processed_txids:
                 continue
 

@@ -24,15 +24,32 @@ processed_txids = set()
 # 这里选择PoL
 # 优先选择最长链，如果两个一样长，选择nonce小的
 
+chain_cache = {}
 def lastest_block(root_hash):
-    roots = db.query("SELECT * FROM graph WHERE from_block = %s OR to_block = %s ORDER BY nonce", root_hash, root_hash)
+    global chain_cache
 
-    chains = []
     prev_hashs = []
-    for root in roots:
-        # print(root.id)
-        chains.append([root.hash])
-        prev_hashs.append(root.hash)
+    if root_hash in chain_cache:
+        chains = chain_cache[root_hash]
+        longest = []
+        for i in chains:
+            if not longest:
+                longest = i
+            if len(longest) < len(i):
+                longest = i
+        if longest:
+            prev_hashs.append(longest[-1])
+        else:
+            prev_hashs.append(root_hash)
+
+    else:
+        roots = db.query("SELECT * FROM graph WHERE from_block = %s OR to_block = %s ORDER BY nonce", root_hash, root_hash)
+
+        chains = []
+        for root in roots:
+            # print(root.id)
+            chains.append([root.hash])
+            prev_hashs.append(root.hash)
 
     while True:
         if prev_hashs:
@@ -73,6 +90,7 @@ def lastest_block(root_hash):
         if len(longest) < len(i):
             longest = i
     # print(longest)
+    chain_cache[root_hash] = chains
     return longest
 
 def main(sk_filename):
