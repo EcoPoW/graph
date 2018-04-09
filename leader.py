@@ -90,7 +90,7 @@ def lastest_block(root_hash):
         if len(longest) < len(i):
             longest = i
     # print(longest)
-    chain_cache[root_hash] = chains
+    # chain_cache[root_hash] = chains
     return longest
 
 def main(sk_filename):

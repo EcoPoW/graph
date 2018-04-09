@@ -37,11 +37,9 @@ def main(sk_filename):
     else:
         # leader = leaders[0]
 
-        transactions = db.query("SELECT * FROM transactions WHERE id > %s ORDER BY id ASC LIMIT 100", transaction_id)
+        transactions = db.query("SELECT * FROM transactions WHERE id > %s ORDER BY id ASC LIMIT 20", transaction_id)
         random.shuffle(transactions)
         for transaction in transactions:
-            if transaction.id > transaction_id:
-                transaction_id = transaction.id
             if transaction.txid in processed_txids:
                 continue
 
@@ -54,12 +52,16 @@ def main(sk_filename):
             chain_txids = set()
             sender_blocks = lastest_block(sender)
             receiver_blocks = lastest_block(receiver)
-            for blockhash in set(sender_blocks+receiver_blocks):
-                tx = db.get("SELECT * FROM graph WHERE hash = %s", blockhash)
-                tx_data = json.loads(tx.data)
-                txid = tx_data["transaction"]["txid"]
-                chain_txids.add(txid)
-                processed_txids.add(txid)
+            if len(set(sender_blocks+receiver_blocks)) >= 1:
+                if len(set(sender_blocks+receiver_blocks)) == 1:
+                    txs = db.query("SELECT * FROM graph WHERE hash = %s", (sender_blocks+receiver_blocks)[0])
+                else:
+                    txs = db.query("SELECT * FROM graph WHERE hash IN %s", set(sender_blocks+receiver_blocks))
+                for tx in txs:
+                    tx_data = json.loads(tx.data)
+                    txid = tx_data["transaction"]["txid"]
+                    chain_txids.add(txid)
+                    processed_txids.add(txid)
 
             if transaction.txid in chain_txids:
                 continue
@@ -97,9 +99,10 @@ def main(sk_filename):
                         pass
                     break
 
+        transaction_id += 20
+        time.sleep(0.1)
 if __name__ == '__main__':
     # print("leader", sys.argv[1])
     sk_filename = sys.argv[1]
     while True:
-        # time.sleep(random.randint(1, 8))
         main(sk_filename)

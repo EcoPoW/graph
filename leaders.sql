@@ -5,5 +5,6 @@ CREATE TABLE `leaders` (
   `pk` varchar(200) NOT NULL DEFAULT '',
   `nonce` int(10) unsigned NOT NULL,
   `timestamp` int(10) unsigned NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `hp` (`hash`,`pk`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
