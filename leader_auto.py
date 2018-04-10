@@ -95,9 +95,9 @@ def main(sk_filename):
                         db.execute("INSERT INTO graph (hash, from_block, to_block, sender, receiver, nonce, data) VALUES (%s, %s, %s, %s, %s, %s, %s)", block_hash, from_block, to_block, sender, receiver, nonce, transaction.data)
                         # db.execute("INSERT INTO graph (hash, from_block, to_block, sender, receiver, nonce, data, transaction_id, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", block_hash, from_block, to_block, sender, receiver, nonce, transaction.data, transaction.id, int(time.time()))
                         processed_txids.add(transaction.txid)
+                        break
                     except:
                         pass
-                    break
 
         transaction_id += 20
         time.sleep(0.1)

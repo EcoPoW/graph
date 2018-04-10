@@ -32,6 +32,7 @@ def lastest_block(root_hash):
     prev_hashs = []
     if root_hash in root_jump:
         recent_hash = root_jump[root_hash]
+        chains.append([recent_hash])
         prev_hashs.append(recent_hash)
 
     else:
