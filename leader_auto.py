@@ -99,8 +99,10 @@ def main(sk_filename):
                     except:
                         pass
 
+            time.sleep(1)
         transaction_id += 20
         time.sleep(0.1)
+
 if __name__ == '__main__':
     # print("leader", sys.argv[1])
     sk_filename = sys.argv[1]
